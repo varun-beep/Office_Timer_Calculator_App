@@ -18,6 +18,17 @@ const vibrate = (ms = 12) => {
   try { navigator.vibrate?.(ms); } catch (_) {}
 };
 
+// ─── Work duration helper (computed once per load, no timers) ─
+// Returns { hours, minutes, label } based on the current day.
+const getWorkDuration = () => {
+  const day = new Date().getDay(); // 0 = Sun … 6 = Sat
+  if (day === 6) return { hours: 5, minutes: 5 * 60, label: '5h target today' };
+  return { hours: 8, minutes: 8 * 60, label: '8h target today' };
+};
+
+// Memoized at module level — stable for the lifetime of the page load
+const WORK_DURATION = getWorkDuration();
+
 const App = () => {
   // --- Robust State Initialization ---
   const [entryTime, setEntryTime] = useState(() => {
@@ -123,7 +134,7 @@ const App = () => {
   }, [breaks, parseTime]);
 
   const totalBreakMinutes = calculateTotalBreakMinutes();
-  const workDurationRequiredMinutes = 8 * 60;
+  const workDurationRequiredMinutes = WORK_DURATION.minutes;
   
   const entryDate = parseTime(entryTime);
   const exitDate = new Date(entryDate.getTime() + (workDurationRequiredMinutes + totalBreakMinutes) * 60000);
@@ -205,6 +216,7 @@ const App = () => {
                 <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider animate-pulse">Overtime</span>
               )}
             </div>
+            <span className="mt-1 text-[10px] font-medium text-white/25 tracking-wide">{WORK_DURATION.label}</span>
           </div>
           <button 
             onClick={resetDay}
