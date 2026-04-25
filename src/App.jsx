@@ -74,13 +74,17 @@ const App = () => {
 
   // --- Effects ---
   useEffect(() => {
-    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    
+    // 60-second tick — keeps remaining/exit time accurate to the minute
+    // without the per-second CPU wake-up that iOS throttles in installed PWAs.
+    const timer = setInterval(() => setCurrentTime(new Date()), 60_000);
+
+    // Snap to current time the instant the user brings the app to foreground.
+    // This covers PWA reopen from background, tab switch, and lock-screen unlock.
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') setCurrentTime(new Date());
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    
+
     return () => {
       clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
